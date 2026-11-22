@@ -181,7 +181,7 @@ function iconHTML(l, size) {
 }
 const BAR = 'font-family:\'Barlow Condensed\',sans-serif';
 function overlay(c) {
-  const holes = 'M0 0 H1920 V1080 H0 Z M44 156 H1482 V939 H44 Z M1526 161 H1865 V429 H1507 V180 Z';
+  const holes = 'M0 0 H1920 V1080 H0 Z M44 156 H1482 V939 H44 Z M1526 161 H1865 V429 H1507 V180 Z M514 982 H1830 V1040 H514 Z';
   const tag = esc(c.tagline).split(/\r?\n/).slice(0, 2).join('<br>');
   const links = c.links.filter(l => (l.text || l.url));
   const n = Math.max(links.length, 1), need = n * 48 + (n - 1) * 16, s = Math.min(1, 340 / need);
@@ -239,11 +239,12 @@ ${wm}
     ${links.map(l => `<div style="display:flex;align-items:center;gap:${gp}px">${iconHTML(l, ic)}<span data-fit="${fs}/14" data-name="Liên kết" style="font-size:${fs}px;font-weight:700;line-height:1.3;white-space:nowrap;overflow:hidden;max-width:${352 - ic - gp}px">${esc(l.text || String(l.url).replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))}</span></div>`).join('')}
   </div>
 </div>
-<div style="position:absolute;left:416px;top:972px;width:1476px;height:78px;box-sizing:border-box;border-radius:0 22px 22px 0;clip-path:polygon(44px 0,100% 0,100% 100%,0 100%);background:#BFDDFF">
-  <div style="position:absolute;inset:2px;clip-path:polygon(43px 0,100% 0,100% 100%,0 100%);background:linear-gradient(180deg,rgba(245,250,255,0.97),rgba(226,239,254,0.97));display:flex;align-items:center;padding-left:44px;padding-right:8px;border-radius:0 20px 20px 0">
+<div style="position:absolute;left:416px;top:972px;width:1476px;height:78px;box-sizing:border-box;border-radius:0 22px 22px 0;clip-path:path(evenodd,'M44 0 H1476 V78 H0 Z M98 10 H1414 V68 H98 Z');background:#BFDDFF">
+  <div style="position:absolute;inset:2px;clip-path:path(evenodd,'M43 0 H1472 V74 H0 Z M96 8 H1412 V66 H96 Z');background:linear-gradient(180deg,rgba(245,250,255,0.97),rgba(226,239,254,0.97));display:flex;align-items:center;padding-left:44px;padding-right:8px;border-radius:0 20px 20px 0">
     ${chev('M15 5 L8 12 L15 19')}<div style="flex:1;min-width:0;height:100%"></div>${chev('M9 5 L16 12 L9 19')}
   </div>
 </div>
+<div style="position:absolute;left:512px;top:980px;width:1320px;height:62px;box-sizing:border-box;border:2px solid #A9D3FF;border-radius:4px;pointer-events:none"></div>
 <div style="position:absolute;left:20px;top:972px;width:440px;height:78px;box-sizing:border-box;border-radius:22px 0 0 22px;clip-path:polygon(0 0,100% 0,calc(100% - 44px) 100%,0 100%);background:#5CB5FF">
   <div style="position:absolute;inset:2px;clip-path:polygon(0 0,100% 0,calc(100% - 43px) 100%,0 100%);background:linear-gradient(135deg,#1690F8 0%,#0A4FB8 100%);display:flex;align-items:center;padding-left:34px;border-radius:20px 0 0 20px">
     <span data-fit="40/24" data-name="Tiêu đề chân trang" style="${BAR};font-size:40px;font-weight:800;line-height:1.2;letter-spacing:0.5px;color:#FFFFFF;white-space:nowrap;overflow:hidden;max-width:356px;text-transform:uppercase">${esc(c.footer)}</span>
@@ -313,7 +314,7 @@ if (OBS) {
   </div>
   <div class="pv">
     <div class="pv-box">
-      <div class="pv-head"><b>Xem trước</b><span>Ô cờ = vùng trong suốt (màn hình bài giảng, webcam, chữ chạy)</span></div>
+      <div class="pv-head"><b>Xem trước</b><span>Ô cờ = vùng trong suốt (bài giảng, webcam, ô chữ chạy)</span></div>
       <div class="stage-wrap" id="sw"><div class="stage" id="stage"></div></div>
       <div id="notes"></div>
     </div>
@@ -322,7 +323,7 @@ if (OBS) {
       <ol>
         <li>Sửa nội dung bên trái, bấm <b>Tải ảnh PNG</b>. Ảnh 1920×1080 vào thư mục Downloads.</li>
         <li>OBS → Sources → <b>Image</b> → chọn ảnh vừa tải, đặt source này <b>trên cùng</b>.</li>
-        <li>Màn hình bài giảng đặt dưới, khớp vùng x44 y156 (1438×783); webcam khớp ô x1511 y165 (350×260); chữ chạy đặt giữa ruy băng.</li>
+        <li>Màn hình bài giảng đặt dưới, khớp vùng x44 y156 (1438×783); webcam khớp ô x1511 y165 (350×260); chữ chạy khớp ô x514 y982 (1316×58) trên ruy băng.</li>
         <li>Nội dung bạn nhập được nhớ lại trên trình duyệt này cho lần mở sau.</li>
       </ol>
     </div>
@@ -430,7 +431,7 @@ if (OBS) {
       const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ASTA-overlay-${slug(cfg.topic)}.png`;
       document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
-      toast('Đã tải ảnh PNG 1920×1080 (nền trong suốt ở vùng bài giảng và webcam)');
+      toast('Đã tải ảnh PNG 1920×1080 (trong suốt ở vùng bài giảng, webcam và ô chữ chạy)');
     } catch (e) { toast('Không xuất được ảnh: ' + (e && e.message || e)); }
     finally { host.remove(); btn.disabled = false; }
   };

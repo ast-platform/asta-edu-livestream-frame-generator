@@ -147,7 +147,7 @@ const DEFAULTS = {
     { icon: 'auto', text: '@astravirtus_ed', url: 'https://www.tiktok.com/@astravirtus_ed', img: '' },
     { icon: 'auto', text: '@asta-edtech', url: 'https://www.youtube.com/@asta-edtech', img: '' }
   ],
-  footer: 'Khóa học đang mở', wmOn: true, wmText: 'asta-education'
+  footer: 'Khóa học đang mở', ribbonMode: 'transparent', ribbonText: '', wmOn: true, wmText: 'asta-education'
 };
 const KEY = 'asta-overlay-draft-v1';
 const $ = (s, r = document) => r.querySelector(s);
@@ -180,11 +180,35 @@ function iconHTML(l, size) {
   return `<span style="width:${size}px;height:${size}px;flex-shrink:0;border-radius:${Math.round(size * 0.24)}px;background:linear-gradient(135deg,#34D3F5 0%,#1690F8 100%);display:flex;align-items:center;justify-content:center"><svg width="${inner}" height="${inner}" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="display:block">${g}</svg></span>`;
 }
 const BAR = 'font-family:\'Barlow Condensed\',sans-serif';
+/* Ruy băng cao theo nội dung: chữ giữ 30px, xuống dòng; ruy băng nở lên trên, khung chính co lại tương ứng */
+let G = {};
+const ribbonText = c => (c.ribbonMode === 'text' ? String(c.ribbonText || '').trim() : '');
+const ribbonHTML = c => esc(ribbonText(c)).split(/\r?\n/).filter(Boolean).join('<br>');
+let meter = null;
+function measure(html, fs) {
+  if (!meter) { meter = document.createElement('div'); meter.style.cssText = 'position:absolute;left:-40000px;top:0;width:1276px;font-family:\'Be Vietnam Pro\',sans-serif;font-weight:700;line-height:1.2;white-space:normal;overflow-wrap:anywhere;visibility:hidden'; document.body.appendChild(meter); }
+  meter.style.fontSize = fs + 'px'; meter.innerHTML = html; return meter.scrollHeight;
+}
+function geom(c) {
+  let slotH = 58, lines = 0, fs = 30, note = '';
+  const html = ribbonHTML(c);
+  if (html) {
+    const MAXL = 4;
+    lines = Math.max(1, Math.round(measure(html, fs) / (fs * 1.2)));
+    while (lines > MAXL && fs > 20) { fs -= 1; lines = Math.max(1, Math.round(measure(html, fs) / (fs * 1.2))); }
+    if (lines > MAXL) { lines = MAXL; note = 'Nội dung ruy băng: quá dài, đã cắt bớt ở dòng thứ 4 — nên rút ngắn.'; }
+    slotH = Math.max(58, Math.ceil(lines * fs * 1.2) + 16);
+  }
+  const R = slotH + 20, rt = 1050 - R, fb = rt - 13, cb = fb - 20;
+  if (html && !note) note = `Nội dung ruy băng: ${lines} dòng, chữ ${fs}px${R > 78 ? ` — ruy băng cao thêm ${R - 78}px, vùng bài giảng còn 1438×${cb - 156} (x44 y156)` : ''}.`;
+  return { slotH, R, rt, fb, fh: fb - 16, cb, lines, fs, html, note };
+}
 function overlay(c) {
-  const holes = 'M0 0 H1920 V1080 H0 Z M44 156 H1482 V939 H44 Z M1526 161 H1865 V429 H1507 V180 Z M514 982 H1830 V1040 H514 Z';
+  const g = G = geom(c);
+  const holes = `M0 0 H1920 V1080 H0 Z M44 156 H1482 V${g.cb} H44 Z M1526 161 H1865 V429 H1507 V180 Z M514 ${g.rt + 10} H1830 V${g.rt + 10 + g.slotH} H514 Z`;
   const tag = esc(c.tagline).split(/\r?\n/).slice(0, 2).join('<br>');
   const links = c.links.filter(l => (l.text || l.url));
-  const n = Math.max(links.length, 1), need = n * 48 + (n - 1) * 16, s = Math.min(1, 340 / need);
+  const n = Math.max(links.length, 1), need = n * 48 + (n - 1) * 16, s = Math.min(1, Math.max(120, g.cb - 530 - 73) / need);
   const ic = Math.round(48 * s), fs = Math.round(26 * s), gp = Math.max(8, Math.round(16 * s));
   let wm = '';
   if (c.wmOn && c.wmText.trim()) {
@@ -196,7 +220,7 @@ function overlay(c) {
   const chev = d => `<span style="width:48px;height:100%;flex-shrink:0;display:flex;align-items:center;justify-content:center"><svg width="34" height="34" viewBox="0 0 24 24" style="display:block"><path d="${d}" fill="none" stroke="#1690F8" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
   return `<div style="width:1920px;height:1080px;position:relative;overflow:hidden;font-family:'Be Vietnam Pro',sans-serif;color:#0A2A5C">
 <div style="clip-path:path(evenodd,'${holes}');position:absolute;left:0;top:0;width:1920px;height:1080px;background:radial-gradient(1000px 700px at 85% 5%,#FFFFFF 0%,rgba(255,255,255,0) 65%),linear-gradient(150deg,#CFE3FB 0%,#E9F2FD 50%,#D3E6FB 100%)"></div>
-<div style="clip-path:path(evenodd,'M0 0 H1866 V943 H0 Z M20 140 H1458 V923 H20 Z M1502 145 H1841 V413 H1483 V164 Z');position:absolute;left:24px;top:16px;width:1866px;height:943px;box-sizing:border-box;border-radius:22px;background:linear-gradient(170deg,rgba(240,247,255,0.9) 0%,rgba(222,236,253,0.9) 100%);border:2px solid #A9D3FF;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.9)"></div>
+<div style="clip-path:path(evenodd,'M0 0 H1866 V${g.fh} H0 Z M20 140 H1458 V${g.cb - 16} H20 Z M1502 145 H1841 V413 H1483 V164 Z');position:absolute;left:24px;top:16px;width:1866px;height:${g.fh}px;box-sizing:border-box;border-radius:22px;background:linear-gradient(170deg,rgba(240,247,255,0.9) 0%,rgba(222,236,253,0.9) 100%);border:2px solid #A9D3FF;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.9)"></div>
 ${wm}
 <div style="position:absolute;left:44px;top:32px;width:580px;height:108px;box-sizing:border-box;border-radius:16px;background:linear-gradient(180deg,#FFFFFF 0%,#F1F7FF 100%);border:2px solid #BFDDFF;box-shadow:0 4px 10px rgba(20,90,180,0.14);display:flex;align-items:center;justify-content:center;gap:20px;padding:0 24px">
   <span style="height:64px;flex-shrink:0;display:block;transform:translateY(-12px)">${LOGO}</span>
@@ -209,7 +233,7 @@ ${wm}
     <div style="position:absolute;right:30px;top:0;bottom:0;width:150px;background:repeating-linear-gradient(115deg,rgba(140,203,255,0.55) 0 9px,transparent 9px 22px)"></div>
   </div>
 </div>
-<div style="position:absolute;left:44px;top:156px;width:1438px;height:783px;box-sizing:border-box;border-radius:4px;border:2px solid #A9D3FF"></div>
+<div style="position:absolute;left:44px;top:156px;width:1438px;height:${g.cb - 156}px;box-sizing:border-box;border-radius:4px;border:2px solid #A9D3FF"></div>
 <div style="clip-path:path(evenodd,'M0 0 H448 V442 H0 Z M64 41 H399 V301 H49 V56 Z');position:absolute;left:1462px;top:124px;width:448px;height:442px;pointer-events:none"><div style="position:absolute;left:40px;top:40px;width:368px;height:362px;filter:blur(8px)"><div style="width:100%;height:100%;clip-path:polygon(22px 0,100% 0,100% calc(100% - 22px),calc(100% - 22px) 100%,0 100%,0 22px);background:rgba(20,90,180,0.22)"></div></div></div>
 <div style="position:absolute;left:1502px;top:156px;width:368px;height:362px">
   <div style="clip-path:path(evenodd,'M22 0 H368 V340 L346 362 H0 V22 Z M22 7 H361 V271 H7 V22 Z');position:absolute;inset:0;background:linear-gradient(135deg,#34D3F5 0%,#1690F8 45%,#0A3A8C 100%)"></div>
@@ -230,7 +254,7 @@ ${wm}
     </div>
   </div>
 </div>
-<div style="position:absolute;left:1502px;top:530px;width:368px;height:409px;box-sizing:border-box;padding:6px 4px 0 4px;display:flex;flex-direction:column;gap:16px">
+<div style="position:absolute;left:1502px;top:530px;width:368px;height:${g.cb - 530}px;overflow:hidden;box-sizing:border-box;padding:6px 4px 0 4px;display:flex;flex-direction:column;gap:16px">
   <div style="display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">
     <span data-fit="30/20" data-name="Tiêu đề liên kết" style="${BAR};font-size:30px;font-weight:800;line-height:1.2;letter-spacing:0.5px;color:#0B3A8C;white-space:nowrap;overflow:hidden;max-width:352px;text-transform:uppercase">${esc(c.linksTitle)}</span>
     <span style="width:60px;height:3px;border-radius:2px;background:#1690F8"></span>
@@ -239,18 +263,24 @@ ${wm}
     ${links.map(l => `<div style="display:flex;align-items:center;gap:${gp}px">${iconHTML(l, ic)}<span data-fit="${fs}/14" data-name="Liên kết" style="font-size:${fs}px;font-weight:700;line-height:1.3;white-space:nowrap;overflow:hidden;max-width:${352 - ic - gp}px">${esc(l.text || String(l.url).replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))}</span></div>`).join('')}
   </div>
 </div>
-<div style="position:absolute;left:416px;top:972px;width:1476px;height:78px;box-sizing:border-box;border-radius:0 22px 22px 0;clip-path:path(evenodd,'M44 0 H1476 V78 H0 Z M98 10 H1414 V68 H98 Z');background:#BFDDFF">
-  <div style="position:absolute;inset:2px;clip-path:path(evenodd,'M43 0 H1472 V74 H0 Z M96 8 H1412 V66 H96 Z');background:linear-gradient(180deg,rgba(245,250,255,0.97),rgba(226,239,254,0.97));display:flex;align-items:center;padding-left:44px;padding-right:8px;border-radius:0 20px 20px 0">
+<div style="position:absolute;left:416px;top:${g.rt}px;width:1476px;height:${g.R}px;box-sizing:border-box;border-radius:0 22px 22px 0;clip-path:path(evenodd,'M44 0 H1476 V${g.R} H0 Z M98 10 H1414 V${10 + g.slotH} H98 Z');background:#BFDDFF">
+  <div style="position:absolute;inset:2px;clip-path:path(evenodd,'M43 0 H1472 V${g.R - 4} H0 Z M96 8 H1412 V${8 + g.slotH} H96 Z');background:linear-gradient(180deg,rgba(245,250,255,0.97),rgba(226,239,254,0.97));display:flex;align-items:center;padding-left:44px;padding-right:8px;border-radius:0 20px 20px 0">
     ${chev('M15 5 L8 12 L15 19')}<div style="flex:1;min-width:0;height:100%"></div>${chev('M9 5 L16 12 L9 19')}
   </div>
 </div>
-<div style="position:absolute;left:512px;top:980px;width:1320px;height:62px;box-sizing:border-box;border:2px solid #A9D3FF;border-radius:4px;pointer-events:none"></div>
-<div style="position:absolute;left:20px;top:972px;width:440px;height:78px;box-sizing:border-box;border-radius:22px 0 0 22px;clip-path:polygon(0 0,100% 0,calc(100% - 44px) 100%,0 100%);background:#5CB5FF">
+${ribbonSlot(c)}
+<div style="position:absolute;left:20px;top:${g.rt}px;width:440px;height:${g.R}px;box-sizing:border-box;border-radius:22px 0 0 22px;clip-path:polygon(0 0,100% 0,calc(100% - 44px) 100%,0 100%);background:#5CB5FF">
   <div style="position:absolute;inset:2px;clip-path:polygon(0 0,100% 0,calc(100% - 43px) 100%,0 100%);background:linear-gradient(135deg,#1690F8 0%,#0A4FB8 100%);display:flex;align-items:center;padding-left:34px;border-radius:20px 0 0 20px">
     <span data-fit="40/24" data-name="Tiêu đề chân trang" style="${BAR};font-size:40px;font-weight:800;line-height:1.2;letter-spacing:0.5px;color:#FFFFFF;white-space:nowrap;overflow:hidden;max-width:356px;text-transform:uppercase">${esc(c.footer)}</span>
   </div>
 </div>
 </div>`;
+}
+function ribbonSlot(c) {
+  const g = G;
+  const box = `position:absolute;left:512px;top:${g.rt + 8}px;width:1320px;height:${g.slotH + 4}px;box-sizing:border-box;border:2px solid #A9D3FF;border-radius:4px;pointer-events:none`;
+  if (!g.html) return `<div style="${box}"></div>`;
+  return `<div style="${box};background:linear-gradient(180deg,#FFFFFF 0%,#EAF4FF 100%);display:flex;align-items:center;padding:0 20px"><span style="display:block;width:100%;max-height:${Math.ceil(g.lines * g.fs * 1.2) + 1}px;overflow:hidden;font-size:${g.fs}px;font-weight:700;line-height:1.2;color:#0B3A8C;white-space:normal;overflow-wrap:anywhere">${g.html}</span></div>`;
 }
 function fit(root) {
   const notes = [];
@@ -261,6 +291,7 @@ function fit(root) {
     if (el.scrollWidth > el.clientWidth + 0.5) notes.push(`${el.dataset.name}: quá dài, đã thu nhỏ hết mức mà vẫn bị cắt — nên rút ngắn.`);
     else if (f < max) notes.push(`${el.dataset.name}: tự thu nhỏ chữ từ ${max}px xuống ${f}px cho vừa khung.`);
   });
+  if (G.note) notes.push(G.note);
   return notes;
 }
 
@@ -306,6 +337,12 @@ if (OBS) {
     </section>
     <section class="card"><h2>Chân trang</h2>
       <div class="f"><label for="i-foot">Tiêu đề chân trang</label><input id="i-foot" data-k="footer"></div>
+      <div class="f"><label>Ô nội dung trên ruy băng</label>
+        <label class="sw" style="margin:2px 0 0"><input type="radio" name="rbm" value="transparent">Để trong suốt (gắn chữ chạy trong OBS)</label>
+        <label class="sw" style="margin:0"><input type="radio" name="rbm" value="text">Điền nội dung vào ảnh</label>
+      </div>
+      <div class="f" id="rb-text"><label for="i-rbt">Nội dung ruy băng</label><textarea id="i-rbt" data-k="ribbonText" rows="2" placeholder="Vd: Khóa C++ giảm 20% · Khóa Python giảm 30% · Đăng ký tại fb.com/IT26page"></textarea>
+        <p class="hint">Chữ giữ cỡ 30px và tự xuống dòng; ruy băng cao lên theo số dòng (tối đa 4 dòng), khung bài giảng co lại tương ứng. Bấm Enter để tự ngắt dòng.</p></div>
     </section>
     <section class="card"><h2>Watermark nền</h2>
       <label class="sw"><input type="checkbox" id="i-wm">Hiện watermark</label>
@@ -323,7 +360,7 @@ if (OBS) {
       <ol>
         <li>Sửa nội dung bên trái, bấm <b>Tải ảnh PNG</b>. Ảnh 1920×1080 vào thư mục Downloads.</li>
         <li>OBS → Sources → <b>Image</b> → chọn ảnh vừa tải, đặt source này <b>trên cùng</b>.</li>
-        <li>Màn hình bài giảng đặt dưới, khớp vùng x44 y156 (1438×783); webcam khớp ô x1511 y165 (350×260); chữ chạy khớp ô x514 y982 (1316×58) trên ruy băng.</li>
+        <li>Màn hình bài giảng đặt dưới, khớp vùng x44 y156 (1438×783, hoặc theo kích thước ghi dưới bản xem trước khi ruy băng có nhiều dòng); webcam khớp ô x1511 y165 (350×260); nếu chọn để trong suốt thì chữ chạy khớp ô x514 y982 (1316×58) trên ruy băng.</li>
         <li>Nội dung bạn nhập được nhớ lại trên trình duyệt này cho lần mở sau.</li>
       </ol>
     </div>
@@ -350,6 +387,8 @@ if (OBS) {
   const fillForm = () => {
     document.querySelectorAll('[data-k]').forEach(el => { el.value = cfg[el.dataset.k] ?? ''; });
     $('#i-wm').checked = !!cfg.wmOn; links();
+    document.querySelectorAll('input[name=rbm]').forEach(r => { r.checked = r.value === (cfg.ribbonMode || 'transparent'); });
+    $('#rb-text').style.display = cfg.ribbonMode === 'text' ? '' : 'none';
   };
   function links() {
     $('#lk-count').textContent = cfg.links.length + ' mục';
@@ -373,6 +412,7 @@ if (OBS) {
     const el = e.target;
     if (el.dataset.k) { cfg[el.dataset.k] = el.value; }
     else if (el.id === 'i-wm') { cfg.wmOn = el.checked; }
+    else if (el.name === 'rbm') { cfg.ribbonMode = el.value; $('#rb-text').style.display = el.value === 'text' ? '' : 'none'; if (el.value === 'text') $('#i-rbt').focus(); }
     else if (el.dataset.f === 'text' || el.dataset.f === 'url') {
       const i = +el.closest('.lk').dataset.i; cfg.links[i][el.dataset.f] = el.value;
       const ico = el.closest('.lk').querySelector('.ico'); ico.innerHTML = iconHTML(cfg.links[i], 32);
@@ -431,7 +471,7 @@ if (OBS) {
       const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
       const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `ASTA-overlay-${slug(cfg.topic)}.png`;
       document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 800);
-      toast('Đã tải ảnh PNG 1920×1080 (trong suốt ở vùng bài giảng, webcam và ô chữ chạy)');
+      toast(cfg.ribbonMode === 'text' && cfg.ribbonText.trim() ? 'Đã tải ảnh PNG 1920×1080 (đã điền nội dung ruy băng)' : 'Đã tải ảnh PNG 1920×1080 (trong suốt ở vùng bài giảng, webcam và ô chữ chạy)');
     } catch (e) { toast('Không xuất được ảnh: ' + (e && e.message || e)); }
     finally { host.remove(); btn.disabled = false; }
   };

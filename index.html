@@ -94,8 +94,8 @@ button,input,select,textarea{font:inherit;color:inherit}
  "links": [
   {
    "icon": "auto",
-   "text": "fb.com/IT26page",
-   "url": "https://fb.com/IT26page",
+   "text": "@asta.edu.tech",
+   "url": "https://www.facebook.com/asta.edu.tech",
    "img": ""
   },
   {
@@ -143,7 +143,7 @@ const DEFAULTS = {
   teacher: 'Thầy Đức', role: 'Giáo viên Tin học - ASTA', badge: 'GV',
   linksTitle: 'Theo dõi ASTA tại',
   links: [
-    { icon: 'auto', text: 'fb.com/IT26page', url: 'https://fb.com/IT26page', img: '' },
+    { icon: 'auto', text: '@asta.edu.tech', url: 'https://www.facebook.com/asta.edu.tech', img: '' },
     { icon: 'auto', text: '@astravirtus_ed', url: 'https://www.tiktok.com/@astravirtus_ed', img: '' },
     { icon: 'auto', text: '@asta-edtech', url: 'https://www.youtube.com/@asta-edtech', img: '' }
   ],
@@ -161,6 +161,8 @@ const OBS = !!window.obsstudio || /(^|[#&?])obs\b/.test(location.hash + location
 let draft = null;
 try { draft = JSON.parse(localStorage.getItem(KEY) || 'null'); } catch (e) {}
 let cfg = merge(window.obsstudio ? embedded : (draft || embedded));
+/* Đổi link Facebook cũ (IT26page) sang trang mới trong bản nháp đã lưu */
+cfg.links.forEach(l => { if (/IT26page/i.test((l.url || '') + (l.text || ''))) { l.url = 'https://www.facebook.com/asta.edu.tech'; l.text = '@asta.edu.tech'; } if (l.text === 'fb.com/asta.edu.tech') l.text = '@asta.edu.tech'; });
 
 function detect(l) {
   if (l.icon && l.icon !== 'auto') return l.icon;
@@ -341,7 +343,7 @@ if (OBS) {
         <label class="sw" style="margin:2px 0 0"><input type="radio" name="rbm" value="transparent">Để trong suốt (gắn chữ chạy trong OBS)</label>
         <label class="sw" style="margin:0"><input type="radio" name="rbm" value="text">Điền nội dung vào ảnh</label>
       </div>
-      <div class="f" id="rb-text"><label for="i-rbt">Nội dung ruy băng</label><textarea id="i-rbt" data-k="ribbonText" rows="2" placeholder="Vd: Khóa C++ giảm 20% · Khóa Python giảm 30% · Đăng ký tại fb.com/IT26page"></textarea>
+      <div class="f" id="rb-text"><label for="i-rbt">Nội dung ruy băng</label><textarea id="i-rbt" data-k="ribbonText" rows="2" placeholder="Vd: Khóa C++ giảm 20% · Khóa Python giảm 30% · Nhắn tin cho kênh để được tư vấn"></textarea>
         <p class="hint">Chữ giữ cỡ 30px và tự xuống dòng; ruy băng cao lên theo số dòng (tối đa 4 dòng), khung bài giảng co lại tương ứng. Bấm Enter để tự ngắt dòng.</p></div>
     </section>
     <section class="card"><h2>Watermark nền</h2>
